@@ -72,4 +72,4 @@ for epoch in range(total_epoch):
         _, loss_val_D = sess.run([train_D, loss_D], feed_dict={X: batch_xs, Z: noise})
         _, loss_val_G = sess.run([train_G, loss_G], feed_dict={Z: noise})
 
-        print('Epoch : ' %04d % epoch, 'D loss: {:.4}'.format(loss_val_D), 'G loss: {:.4}'.format(loss_val_G))
+        print('Epoch :  %04d' % epoch, 'D loss: {:.4}'.format(loss_val_D), 'G loss: {:.4}'.format(loss_val_G))
