@@ -4,6 +4,8 @@
 ## Implemented model
 - GAN
 
-## Not Implemented model
+## Currently implementing
 - DCGAN
+
+## Not Implemented model
 - InfoGAN
