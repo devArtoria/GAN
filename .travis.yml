@@ -1,0 +1,12 @@
+# .travis.yml
+
+sudo: required
+dist: trusty
+language: python
+python: # Only two versions for now
+  - "3.5"
+  - "3.6"
+install: "pip install -r requirements.txt"
+
+script:
+  - python -m compileall .
