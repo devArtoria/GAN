@@ -20,8 +20,6 @@ df_dim = 64
 
 eps = 1e-12
 
-X = tf.placeholder(tf.float32, [])
-
 X = tf.placeholder(tf.float32, [None, n_input])
 Z = tf.placeholder(tf.float32, [None, z_dim])
 
@@ -45,7 +43,8 @@ def generator(Z):
                                     kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                                     kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                                     bias_initializer=tf.zeros_initializer(),
-                                    padding='SAME')
+                                    padding='SAME',
+                                    name="G-deconv1")
     G3 = tf.layers.batch_normalization(inputs=G3,
                                        momentum=0.9,
                                        epsilon=eps,
@@ -60,7 +59,8 @@ def generator(Z):
                                     kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                                     kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                                     bias_initializer=tf.zeros_initializer(),
-                                    padding='SAME')
+                                    padding='SAME',
+                                    name="G-deconv2")
     G4 = tf.nn.relu(G4)
 
     logit = tf.layers.conv2d_transpose(inputs=G4,
@@ -70,7 +70,8 @@ def generator(Z):
                                        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                                        bias_initializer=tf.zeros_initializer(),
-                                       padding='SAME')
+                                       padding='SAME',
+                                       name="G-deconv1")
 
     output = tf.nn.tanh(logit)
 
@@ -138,6 +139,18 @@ def discriminator(X):
 
     return logits
 
+G = generator(Z)
 
+D_real = discriminator(X)
+D_fake = discriminator(G)
+
+log = lambda x:tf.log(x + eps)
+
+D_loss = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
+G_loss = loss_G = tf.reduce_mean(tf.loss(D_fake))
+
+var = tf.trainable_variables()
+D_var_list = []
+G_var_list = []
 
 
