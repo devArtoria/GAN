@@ -17,7 +17,7 @@ Z = tf.placeholder(tf.float32, [None, n_noise])
 
 #Generator Layer
 G_w1 = tf.Variable(tf.random_normal([n_noise, n_hidden], stddev=0.01))
-G_b1 = tf.Variable(tf.zeros[n_hidden])
+G_b1 = tf.Variable(tf.zeros([n_hidden]))
 
 G_w2 = tf.Variable(tf.random_normal([n_hidden, n_input], stddev=0.01))
 G_b2 = tf.Variable(tf.zeros([n_input]))
@@ -37,7 +37,7 @@ def generator(noise_z):
 
 def discriminator(inputs):
     hidden = tf.nn.relu(tf.matmul(inputs, D_w1) + D_b1)
-    output = tf.nn.simoid(tf.matmul(hidden, D_w2) + D_b2)
+    output = tf.nn.sigmoid(tf.matmul(hidden, D_w2) + D_b2)
 
     return output
 
@@ -50,7 +50,7 @@ D_real = discriminator(X)
 
 loss_D = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_gene))
 
-loss_G = tf.reduce_mean(tf.loss(D_gene))
+loss_G = tf.reduce_mean(tf.log(D_gene))
 
 D_var_list = [D_w1, D_b2, D_w1, D_b2]
 G_var_list = [G_w1, G_b2, G_w1, G_b2]
