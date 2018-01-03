@@ -71,7 +71,7 @@ def generator(Z):
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                                        bias_initializer=tf.zeros_initializer(),
                                        padding='SAME',
-                                       name="G-deconv1")
+                                       name="G-deconv3")
 
     output = tf.nn.tanh(logit)
 
@@ -86,7 +86,8 @@ def discriminator(X):
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
                           padding='SAME',
-                          activation=tf.nn.leaky_relu())
+                          activation=tf.nn.leaky_relu(),
+                          name="D-conv0")
 
     D2 = tf.layers.conv2d(inputs=D1,
                           filters=df_dim*2,
@@ -95,7 +96,8 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
+                          padding='SAME',
+                          name="D-conv1")
     D2 = tf.layers.batch_normalization(inputs=D2,
                                        momentum=0.9,
                                        epsilon=eps,
@@ -110,7 +112,8 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
+                          padding='SAME',
+                          name="D-conv2")
     D3 = tf.layers.batch_normalization(inputs=D3,
                                        momentum=0.9,
                                        epsilon=eps,
@@ -125,7 +128,8 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
+                          padding='SAME',
+                          name="D-conv3")
     D4 = tf.layers.batch_normalization(inputs=D4,
                                        momentum=0.9,
                                        epsilon=eps,
@@ -134,10 +138,10 @@ def discriminator(X):
     D4 = tf.nn.leaky_relu(D4)
     D4 = tf.layers.flatten(D4)
 
-    logits = tf.layers.dense(D4, 1)
+    logits = tf.layers.dense(D4, 1, name="D-fc1")
     prob = tf.nn.sigmoid(logits)
 
-    return logits
+    return prob
 
 G = generator(Z)
 
@@ -150,7 +154,7 @@ D_loss = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
 G_loss = loss_G = tf.reduce_mean(tf.loss(D_fake))
 
 var = tf.trainable_variables()
-D_var_list = []
-G_var_list = []
+D_var_list = [var for var in vars if var.name.startswitch("D")]
+G_var_list = [var for var in vars if var.name.startswitch("G")]
 
 
