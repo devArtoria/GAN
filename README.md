@@ -6,6 +6,12 @@
 
 ## Currently implementing
 - DCGAN
+- InfoGAN
 
 ## Not Implemented model
-- InfoGAN
+- Conditional GAN
+- WGAN
+- EBGAN
+- BEGAN
+- DiscoGAN
+- CycleGAN
