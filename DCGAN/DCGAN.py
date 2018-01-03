@@ -11,6 +11,7 @@ batch_size = 100
 learning_rate = 0.0002
 
 n_input = 28*28
+n_noise = 128
 
 sample_size = 8
 sample_num = 64
@@ -23,6 +24,7 @@ eps = 1e-12
 
 X = tf.placeholder(tf.float32, [None, n_input])
 Z = tf.placeholder(tf.float32, [None, z_dim])
+
 
 def get_noise(batch_size, n_noise):
     return np.random.normal(size=(batch_size, n_noise))
@@ -172,6 +174,9 @@ loss_val_D, loss_val_G = 0, 0
 for epoch in range(total_epoch):
     for i in range(total_batch):
         batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+        noise = get_noise(batch_size, n_noise)
 
+        _, loss_val_D = sess.run([train_D, D_loss], feed_dict={X: batch_xs, Z: noise})
+        _, loss_val_G = sess.run([train_G, G_loss], feed_dict={Z: noise})
 
-
+        print('Epoch :  %04d' % epoch, 'D loss: {:.4}'.format(loss_val_D), 'G loss: {:.4}'.format(loss_val_G))
