@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 tf.set_random_seed(777)
 
@@ -23,6 +24,8 @@ eps = 1e-12
 X = tf.placeholder(tf.float32, [None, n_input])
 Z = tf.placeholder(tf.float32, [None, z_dim])
 
+def get_noise(batch_size, n_noise):
+    return np.random.normal(size=(batch_size, n_noise))
 
 
 def generator(Z):
@@ -151,10 +154,24 @@ D_fake = discriminator(G)
 log = lambda x:tf.log(x + eps)
 
 D_loss = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
-G_loss = loss_G = tf.reduce_mean(tf.loss(D_fake))
+G_loss = tf.reduce_mean(tf.loss(D_fake))
 
 var = tf.trainable_variables()
 D_var_list = [var for var in vars if var.name.startswitch("D")]
 G_var_list = [var for var in vars if var.name.startswitch("G")]
+
+train_D = tf.train.AdamOptimizer(learning_rate).minimize(-D_loss, var_list=D_var_list)
+train_G = tf.train.AdamOptimizer(learning_rate).minimize(-G_loss, var_list=G_var_list)
+
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+
+total_batch = int(mnist.train.num_examples / batch_size)
+loss_val_D, loss_val_G = 0, 0
+
+for epoch in range(total_epoch):
+    for i in range(total_batch):
+        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+
 
 
