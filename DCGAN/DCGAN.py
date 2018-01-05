@@ -23,6 +23,7 @@ df_dim = 64
 eps = 1e-12
 
 X = tf.placeholder(tf.float32, [None, n_input])
+X = tf.reshape(X, [-1, 28, 28, 1])
 Z = tf.placeholder(tf.float32, [None, z_dim])
 
 
@@ -90,9 +91,8 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME',
-                          activation=tf.nn.leaky_relu(),
-                          name="D-conv0")
+                          padding='SAME')
+    D1 = tf.nn.leaky_relu(D1, name="D-conv0")
 
     D2 = tf.layers.conv2d(inputs=D1,
                           filters=df_dim*2,
@@ -101,14 +101,13 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME',
-                          name="D-conv1")
+                          padding='SAME')
     D2 = tf.layers.batch_normalization(inputs=D2,
                                        momentum=0.9,
                                        epsilon=eps,
                                        scale=True,
                                        training=True)
-    D2 = tf.nn.leaky_relu(D2)
+    D2 = tf.nn.leaky_relu(D2, name="D-conv1")
 
     D3 = tf.layers.conv2d(inputs=D2,
                           filters=df_dim * 4,
@@ -117,14 +116,13 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME',
-                          name="D-conv2")
+                          padding='SAME')
     D3 = tf.layers.batch_normalization(inputs=D3,
                                        momentum=0.9,
                                        epsilon=eps,
                                        scale=True,
                                        training=True)
-    D3 = tf.nn.leaky_relu(D3)
+    D3 = tf.nn.leaky_relu(D3, name="D-conv2")
 
     D4 = tf.layers.conv2d(inputs=D3,
                           filters=df_dim * 8,
@@ -133,18 +131,17 @@ def discriminator(X):
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
                           bias_initializer=tf.zeros_initializer(),
-                          padding='SAME',
-                          name="D-conv3")
+                          padding='SAME')
     D4 = tf.layers.batch_normalization(inputs=D4,
                                        momentum=0.9,
                                        epsilon=eps,
                                        scale=True,
                                        training=True)
     D4 = tf.nn.leaky_relu(D4)
-    D4 = tf.layers.flatten(D4)
+    D4 = tf.layers.flatten(D4, name="D-conv3")
 
-    logits = tf.layers.dense(D4, 1, name="D-fc1")
-    prob = tf.nn.sigmoid(logits)
+    logits = tf.layers.dense(D4, 1)
+    prob = tf.nn.sigmoid(logits, name="D-fc1")
 
     return prob
 
@@ -156,11 +153,13 @@ D_fake = discriminator(G)
 log = lambda x:tf.log(x + eps)
 
 D_loss = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
-G_loss = tf.reduce_mean(tf.loss(D_fake))
+G_loss = tf.reduce_mean(tf.log(D_fake))
 
 var = tf.trainable_variables()
-D_var_list = [var for var in vars if var.name.startswitch("D")]
-G_var_list = [var for var in vars if var.name.startswitch("G")]
+print(var)
+D_var_list = [n for n in var if n.name.startswith("D")]
+G_var_list = [n for n in var if n.name.startswith("G")]
+print(D_var_list, G_var_list, D_loss, G_loss)
 
 train_D = tf.train.AdamOptimizer(learning_rate).minimize(-D_loss, var_list=D_var_list)
 train_G = tf.train.AdamOptimizer(learning_rate).minimize(-G_loss, var_list=G_var_list)
