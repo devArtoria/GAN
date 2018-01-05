@@ -31,124 +31,128 @@ def get_noise(batch_size, n_noise):
     return np.random.normal(size=(batch_size, n_noise))
 
 
-def generator(Z):
-    G1 = tf.layers.dense(Z, df_dim, activation=tf.nn.leaky_relu)
+def generator(Z, reuse=None):
+    with tf.variable_scope('Generator', reuse=reuse):
+        G1 = tf.layers.dense(Z, df_dim, activation=tf.nn.leaky_relu)
 
-    G2 = tf.reshape(G1, [batch_size, 4, 4, gf_dim * 8])
-    G2 = tf.layers.batch_normalization(inputs=G2,
-                                       momentum=0.9,
-                                       epsilon=eps,
-                                       scale=True,
-                                       training=True)
-    G2 = tf.nn.relu(G2)
+        G2 = tf.reshape(G1, [batch_size, 4, 4, gf_dim * 8])
+        G2 = tf.layers.batch_normalization(inputs=G2,
+                                           momentum=0.9,
+                                           epsilon=eps,
+                                           scale=True,
+                                           training=True)
+        G2 = tf.nn.relu(G2)
 
-    G3 = tf.layers.conv2d_transpose(inputs=G2,
-                                    filters=gf_dim * 4,
-                                    kernel_size=3,
-                                    strides=2,
-                                    kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                                    bias_initializer=tf.zeros_initializer(),
-                                    padding='SAME',
-                                    name="G-deconv1")
-    G3 = tf.layers.batch_normalization(inputs=G3,
-                                       momentum=0.9,
-                                       epsilon=eps,
-                                       scale=True,
-                                       training=True)
-    G3 = tf.nn.relu(G3)
+        G3 = tf.layers.conv2d_transpose(inputs=G2,
+                                        filters=gf_dim * 4,
+                                        kernel_size=3,
+                                        strides=2,
+                                        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                                        bias_initializer=tf.zeros_initializer(),
+                                        padding='SAME',
+                                        name="G-deconv1")
+        G3 = tf.layers.batch_normalization(inputs=G3,
+                                           momentum=0.9,
+                                           epsilon=eps,
+                                           scale=True,
+                                           training=True)
+        G3 = tf.nn.relu(G3)
 
-    G4 = tf.layers.conv2d_transpose(inputs=G3,
-                                    filters=gf_dim * 2,
-                                    kernel_size=3,
-                                    strides=2,
-                                    kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                                    bias_initializer=tf.zeros_initializer(),
-                                    padding='SAME',
-                                    name="G-deconv2")
-    G4 = tf.nn.relu(G4)
+        G4 = tf.layers.conv2d_transpose(inputs=G3,
+                                        filters=gf_dim * 2,
+                                        kernel_size=3,
+                                        strides=2,
+                                        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                                        bias_initializer=tf.zeros_initializer(),
+                                        padding='SAME',
+                                        name="G-deconv2")
+        G4 = tf.nn.relu(G4)
 
-    logit = tf.layers.conv2d_transpose(inputs=G4,
-                                       filters=1,
-                                       kernel_size=3,
-                                       strides=2,
-                                       kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                       kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                                       bias_initializer=tf.zeros_initializer(),
-                                       padding='SAME',
-                                       name="G-deconv3")
+        logit = tf.layers.conv2d_transpose(inputs=G4,
+                                           filters=1,
+                                           kernel_size=3,
+                                           strides=2,
+                                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                                           kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                                           bias_initializer=tf.zeros_initializer(),
+                                           padding='SAME',
+                                           name="G-deconv3")
 
-    output = tf.nn.tanh(logit)
+        output = tf.nn.tanh(logit)
 
-    return output
+        return output
 
-def discriminator(X):
-    D1 = tf.layers.conv2d(inputs=X,
-                          filters=df_dim,
-                          kernel_size=3,
-                          strides=2,
-                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                          kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                          bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
-    D1 = tf.nn.leaky_relu(D1, name="D-conv0")
 
-    D2 = tf.layers.conv2d(inputs=D1,
-                          filters=df_dim*2,
-                          kernel_size=3,
-                          strides=2,
-                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                          kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                          bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
-    D2 = tf.layers.batch_normalization(inputs=D2,
-                                       momentum=0.9,
-                                       epsilon=eps,
-                                       scale=True,
-                                       training=True)
-    D2 = tf.nn.leaky_relu(D2, name="D-conv1")
+def discriminator(X, reuse=None):
+    with tf.variable_scope('Discriminator', reuse=reuse):
+        D1 = tf.layers.conv2d(inputs=X,
+                              filters=df_dim,
+                              kernel_size=3,
+                              strides=2,
+                              kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                              kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                              bias_initializer=tf.zeros_initializer(),
+                              padding='SAME', name="D-conv0")
+        D1 = tf.nn.leaky_relu(D1)
 
-    D3 = tf.layers.conv2d(inputs=D2,
-                          filters=df_dim * 4,
-                          kernel_size=3,
-                          strides=2,
-                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                          kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                          bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
-    D3 = tf.layers.batch_normalization(inputs=D3,
-                                       momentum=0.9,
-                                       epsilon=eps,
-                                       scale=True,
-                                       training=True)
-    D3 = tf.nn.leaky_relu(D3, name="D-conv2")
+        D2 = tf.layers.conv2d(inputs=D1,
+                              filters=df_dim * 2,
+                              kernel_size=3,
+                              strides=2,
+                              kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                              kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                              bias_initializer=tf.zeros_initializer(),
+                              padding='SAME', name="D-conv1")
+        D2 = tf.layers.batch_normalization(inputs=D2,
+                                           momentum=0.9,
+                                           epsilon=eps,
+                                           scale=True,
+                                           training=True)
+        D2 = tf.nn.leaky_relu(D2)
 
-    D4 = tf.layers.conv2d(inputs=D3,
-                          filters=df_dim * 8,
-                          kernel_size=3,
-                          strides=2,
-                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                          kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
-                          bias_initializer=tf.zeros_initializer(),
-                          padding='SAME')
-    D4 = tf.layers.batch_normalization(inputs=D4,
-                                       momentum=0.9,
-                                       epsilon=eps,
-                                       scale=True,
-                                       training=True)
-    D4 = tf.nn.leaky_relu(D4)
-    D4 = tf.layers.flatten(D4, name="D-conv3")
+        D3 = tf.layers.conv2d(inputs=D2,
+                              filters=df_dim * 4,
+                              kernel_size=3,
+                              strides=2,
+                              kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                              kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                              bias_initializer=tf.zeros_initializer(),
+                              padding='SAME', name="D-conv2")
+        D3 = tf.layers.batch_normalization(inputs=D3,
+                                           momentum=0.9,
+                                           epsilon=eps,
+                                           scale=True,
+                                           training=True)
+        D3 = tf.nn.leaky_relu(D3)
 
-    logits = tf.layers.dense(D4, 1)
-    prob = tf.nn.sigmoid(logits, name="D-fc1")
+        D4 = tf.layers.conv2d(inputs=D3,
+                              filters=df_dim * 8,
+                              kernel_size=3,
+                              strides=2,
+                              kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+                              kernel_regularizer=tf.contrib.layers.l2_regularizer(5e-4),
+                              bias_initializer=tf.zeros_initializer(),
+                              padding='SAME', name="D-conv3")
+        D4 = tf.layers.batch_normalization(inputs=D4,
+                                           momentum=0.9,
+                                           epsilon=eps,
+                                           scale=True,
+                                           training=True)
+        D4 = tf.nn.leaky_relu(D4)
+        D4 = tf.layers.flatten(D4)
 
-    return prob
+        logits = tf.layers.dense(D4, 1, name="D-fc1")
+        prob = tf.nn.sigmoid(logits)
+
+        return prob
+
 
 G = generator(Z)
 
 D_real = discriminator(X)
-D_fake = discriminator(G)
+D_fake = discriminator(G, True)
 
 log = lambda x:tf.log(x + eps)
 
@@ -156,10 +160,8 @@ D_loss = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
 G_loss = tf.reduce_mean(tf.log(D_fake))
 
 var = tf.trainable_variables()
-print(var)
 D_var_list = [n for n in var if n.name.startswith("D")]
 G_var_list = [n for n in var if n.name.startswith("G")]
-print(D_var_list, G_var_list, D_loss, G_loss)
 
 train_D = tf.train.AdamOptimizer(learning_rate).minimize(-D_loss, var_list=D_var_list)
 train_G = tf.train.AdamOptimizer(learning_rate).minimize(-G_loss, var_list=G_var_list)
