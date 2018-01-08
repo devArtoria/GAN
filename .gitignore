@@ -101,3 +101,4 @@ ENV/
 .idea/GAN.iml
 *.xml
 *.gz
+*.iml
