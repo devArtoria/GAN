@@ -61,3 +61,31 @@ def Discriminator(X, reuse=None, training=True):
 
         return output, D5
 
+# Z = np.random.normal(0, 1, (25, 1, 1, 100))
+
+G = Generator(Z, training)
+
+D_gene, D_gene_logits = Discriminator(G, training, reuse=True)
+D_real, D_real_logits = Discriminator(X, training)
+
+loss_D = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_real_logits, labels=tf.ones([batch_size, 1, 1, 1])) +
+                        tf.nn.sigmoid_cross_entropy_with_logits(logits=D_gene_logits, labels=tf.zeros([batch_size, 1, 1, 1])))
+loss_G = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_gene_logits, labels=tf.ones([batch_size, 1, 1, 1])))
+
+train_params = tf.trainable_variables()
+D_var_list = [var for var in train_params if var.name.startswith('D')]
+G_var_list = [var for var in train_params if var.name.startswith('G')]
+
+train_D = tf.train.AdamOptimizer(learning_rate).minimize(loss_D, var_list=D_var_list)
+train_G = tf.train.AdamOptimizer(learning_rate).minimize(loss_G, var_list=G_var_list)
+
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+
+train_set = tf.image.resize_images(mnist.train.images, [64, 64]).eval()
+train_set = (train_set - 0.5) / 0.5
+
+
+
+
+
