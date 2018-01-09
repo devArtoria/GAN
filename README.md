@@ -4,13 +4,13 @@
 ## Implemented model
 - GAN
 - DCGAN
+- InfoGAN
 
 ## Currently implementing
-- InfoGAN
+-WGAN
 
 ## Not Implemented model
 - Conditional GAN
-- WGAN
 - EBGAN
 - BEGAN
 - DiscoGAN
