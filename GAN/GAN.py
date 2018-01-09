@@ -73,3 +73,19 @@ for epoch in range(total_epoch):
         _, loss_val_G = sess.run([train_G, loss_G], feed_dict={Z: noise})
 
         print('Epoch :  %04d' % epoch, 'D loss: {:.4}'.format(loss_val_D), 'G loss: {:.4}'.format(loss_val_G))
+
+    if epoch == 0 or (epoch+1) % 10 == 0:
+        sample_size = 10
+        noise = get_noise(sample_size, n_noise)
+        samples = sess.run(G, feed_dict={Z: noise})
+
+        fig, ax = plt.subplots(1, sample_size, figsize=(sample_size, 1))
+
+        for i in range(sample_size):
+            ax[i].set_axis_off()
+            ax[i].imshow(np.reshape(samples[i], (28, 28)))
+
+        plt.savefig('samples/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
+        plt.close(fig)
+
+print('Optimization Finished!')
