@@ -7,7 +7,7 @@
 - InfoGAN
 
 ## Currently implementing
--WGAN
+- WGAN
 
 ## Not Implemented model
 - Conditional GAN
