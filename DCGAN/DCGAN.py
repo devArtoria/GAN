@@ -16,7 +16,7 @@ X = tf.placeholder(tf.float32, [None, n_height, n_width, 1])
 Z = tf.placeholder(tf.float32, [None, 1, 1, n_noise])
 training = tf.placeholder(tf.bool)
 
-def Generator(Z, reuse=False, training=True):
+def Generator(Z, training=True):
     with tf.variable_scope("Generator", reuse=tf.AUTO_REUSE):
         G1 = tf.layers.conv2d_transpose(Z, 1024, [4, 4], 1, padding='valid')
         G1 = tf.layers.batch_normalization(G1, training=training)
@@ -39,7 +39,7 @@ def Generator(Z, reuse=False, training=True):
 
         return output
 
-def Discriminator(X, reuse=False, training=True):
+def Discriminator(X, training=True):
     with tf.variable_scope("Discriminator", reuse=tf.AUTO_REUSE):
         D1 = tf.layers.conv2d(X, 128, [4, 4], 2, padding='same')
         D1 = tf.nn.leaky_relu(D1)
@@ -63,7 +63,7 @@ def Discriminator(X, reuse=False, training=True):
 
 G = Generator(Z, training=training)
 
-D_gene, D_gene_logits = Discriminator(G, True, training)
+D_gene, D_gene_logits = Discriminator(G, training=training)
 D_real, D_real_logits = Discriminator(X, training=training)
 
 loss_D = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_real_logits, labels=tf.ones([batch_size, 1, 1, 1])) +
